@@ -2,7 +2,7 @@
 FROM alpine:latest
 
 # install bash, curl, rclone, tzdata, and busybox-cron
-RUN apk add --no-cache bash curl tzdata ca-certificates busybox-suid \
+RUN apk add --no-cache bash curl tzdata ca-certificates busybox-suid postgresql-client \
     && mkdir -p /opt/backup/scripts /backups
 
 RUN apk add --no-cache bash curl unzip \

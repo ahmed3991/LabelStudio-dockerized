@@ -31,7 +31,7 @@ services:
       LABEL_STUDIO_PASSWORD: ${LS_PASSWORD}
       LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED: "true"
     ports:
-      - 80:8080
+      - 8080:8080
     volumes:
       - ./data/labelstudio_data:/label-studio/data
       - ./data/projects:/label-studio/projects

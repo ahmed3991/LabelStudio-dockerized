@@ -1,0 +1,76 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:14
+    container_name: ls_postgres
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - ./data/pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 10
+
+  labelstudio:
+    image: heartexlabs/label-studio:latest
+    container_name: labelstudio
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      LABEL_STUDIO_DB: postgresql
+      LABEL_STUDIO_DB_USER: ${POSTGRES_USER}
+      LABEL_STUDIO_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      LABEL_STUDIO_DB_HOST: db
+      LABEL_STUDIO_DB_PORT: ${POSTGRES_PORT}
+      LABEL_STUDIO_USERNAME: ${LS_USERNAME}
+      LABEL_STUDIO_PASSWORD: ${LS_PASSWORD}
+      LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED: "true"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data/labelstudio_data:/label-studio/data
+      - ./data/projects:/label-studio/projects
+    depends_on:
+      - db
+
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "81:81"  # admin panel
+    environment:
+      DB_SQLITE_FILE: "/data/database.sqlite"
+    volumes:
+      - ./nginx/data:/data
+      - ./nginx/letsencrypt:/etc/letsencrypt
+
+
+  backup:
+    build:
+      context: ./backup
+      dockerfile: Dockerfile
+    container_name: ls_backup
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data/pgdata:/var/lib/postgresql/data:ro
+      - ./data/labelstudio_data:/label-studio/data:ro
+      - ./data/projects:/label-studio/projects:ro
+      - ./backup/rclone:/root/.config/rclone:ro
+      - ./backup/scripts:/opt/backup/scripts:ro
+      - ./backups:/backups
+    depends_on:
+      - db
+      - labelstudio
+networks:
+  default:
+    name: ls_network

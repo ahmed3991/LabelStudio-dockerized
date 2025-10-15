@@ -31,26 +31,26 @@ services:
       LABEL_STUDIO_PASSWORD: ${LS_PASSWORD}
       LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED: "true"
     ports:
-      - 8080:8080
+      - 80:8080
     volumes:
       - ./data/labelstudio_data:/label-studio/data
       - ./data/projects:/label-studio/projects
     depends_on:
       - db
 
-  nginx-proxy-manager:
-    image: jc21/nginx-proxy-manager:latest
-    container_name: nginx-proxy-manager
-    restart: unless-stopped
-    ports:
-      - 80:80
-      - 443:443
-      - 81:81  # admin panel
-    environment:
-      DB_SQLITE_FILE: "/data/database.sqlite"
-    volumes:
-      - ./nginx/data:/data
-      - ./nginx/letsencrypt:/etc/letsencrypt
+  # nginx-proxy-manager:
+  #   image: jc21/nginx-proxy-manager:latest
+  #   container_name: nginx-proxy-manager
+  #   restart: unless-stopped
+  #   ports:
+  #     - 80:80
+  #     - 443:443
+  #     - 81:81  # admin panel
+  #   environment:
+  #     DB_SQLITE_FILE: "/data/database.sqlite"
+  #   volumes:
+  #     - ./nginx/data:/data
+  #     - ./nginx/letsencrypt:/etc/letsencrypt
 
 
   backup:
